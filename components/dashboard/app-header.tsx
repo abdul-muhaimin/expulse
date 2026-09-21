@@ -45,7 +45,7 @@ export function AppHeader() {
       <div className="flex h-full items-center justify-between px-4 md:px-6">
         {/* Product branding */}
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold tracking-tight">expulse</span>
+          <span className="text-lg font-semibold tracking-tight">ExPulse</span>
         </div>
 
         {/* User actions */}
@@ -69,9 +69,7 @@ export function AppHeader() {
                 <DropdownMenuLabel>
                   <div className="flex flex-col gap-1">
                     {user?.displayName && (
-                      <span className="font-medium">
-                        {user.displayName}
-                      </span>
+                      <span className="font-medium">{user.displayName}</span>
                     )}
 
                     <span className="truncate text-xs font-normal text-muted-foreground">

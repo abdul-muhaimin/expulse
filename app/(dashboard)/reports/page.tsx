@@ -82,7 +82,7 @@ export default function ReportsPage() {
         onChange={setSelectedMonth}
       />
 
-      <div>
+      <div className="p-2">
         <p className="text-sm font-medium">Monthly performance</p>
 
         <p className="mt-1 text-sm text-muted-foreground">
@@ -90,7 +90,7 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      <div className="divide-y border-y">
+      <div className="divide-y border-y p-2">
         <MetricRow
           label="Responses"
           description="Total customer responses"
@@ -131,7 +131,7 @@ export default function ReportsPage() {
         />
       </div>
 
-      <section className="space-y-5">
+      <section className="space-y-5 p-2">
         <div>
           <h2 className="text-lg font-semibold">Rating distribution</h2>
 
@@ -275,7 +275,7 @@ function FeedbackSummary({ feedback }: { feedback: FeedbackDoc[] }) {
   const noComment = feedback.filter((item) => !item.comment?.trim()).length;
 
   return (
-    <section className="space-y-4 border-t pt-8">
+    <section className="space-y-4 border-t pt-8 p-2">
       <div>
         <h2 className="text-lg font-semibold">Customer feedback</h2>
 
@@ -309,7 +309,7 @@ function ReportComments({ feedback }: { feedback: FeedbackDoc[] }) {
   const comments = feedback.filter((item) => item.comment?.trim()).slice(0, 10);
 
   return (
-    <section className="space-y-4 border-t pt-8">
+    <section className="space-y-4 border-t pt-8 p-2">
       <div>
         <h2 className="text-lg font-semibold">Recent comments</h2>
 
@@ -323,7 +323,7 @@ function ReportComments({ feedback }: { feedback: FeedbackDoc[] }) {
           No written comments for this month.
         </p>
       ) : (
-        <div className="divide-y border-y">
+        <div className="divide-y border-y p-2">
           {comments.map((item) => (
             <div key={item.id} className="py-4">
               <div className="flex flex-wrap items-center gap-2">
