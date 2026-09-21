@@ -1,15 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Settings } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Settings } from "lucide-react";
 
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/auth-provider";
 import { navigationItems } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
+
+import { buttonVariants, Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export function DesktopSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace("/login");
+  }
 
   return (
     <aside
@@ -49,8 +59,22 @@ export function DesktopSidebar() {
           })}
         </nav>
 
-        {/* Settings stays at the bottom */}
+        {/* Account area */}
         <div className="mt-auto">
+          <Separator className="mb-2" />
+
+          {/* Signed-in email */}
+          <div className="px-3 py-2">
+            <p className="text-xs text-muted-foreground">Signed in as</p>
+
+            <p
+              className="truncate text-sm font-medium"
+              title={user?.email ?? undefined}
+            >
+              {user?.email ?? "Loading..."}
+            </p>
+          </div>
+
           <Link
             href="/settings"
             className={cn(
@@ -61,6 +85,15 @@ export function DesktopSidebar() {
             <Settings className="size-4" />
             Settings
           </Link>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={handleSignOut}
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </Button>
         </div>
       </div>
     </aside>

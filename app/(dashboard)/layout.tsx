@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 
+import { RequireAuth } from "@/components/auth/require-auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <RequireAuth>
+      <DashboardShell>{children}</DashboardShell>
+    </RequireAuth>
+  );
 }
