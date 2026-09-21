@@ -41,7 +41,7 @@ export function LoginForm() {
         router.replace("/dashboard");
       }
     } catch (error) {
-      console.error("Login failed:", error);
+      // console.error("Login failed:", error);
 
       // Keep the public error generic.
       // Don't reveal whether a specific email account exists.

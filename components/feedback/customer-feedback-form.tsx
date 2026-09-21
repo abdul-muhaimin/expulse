@@ -1,12 +1,16 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Check, CheckCircle2 } from "lucide-react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/lib/firebase/client";
+import {
+  hasRecentFeedback,
+  markFeedbackSubmitted,
+} from "@/lib/feedback-cooldown";
 
 type Business = {
   id: string;
@@ -28,9 +32,17 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
   const [recommend, setRecommend] = useState<boolean | null>(null);
   const [comment, setComment] = useState("");
 
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setAlreadySubmitted(hasRecentFeedback(business.id));
+    }, 0);
+    return () => clearTimeout(id);
+  }, [business.id]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,6 +69,7 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
         createdAt: serverTimestamp(),
       });
 
+      markFeedbackSubmitted(business.id);
       setSubmitted(true);
     } catch (error) {
       console.error("Failed to submit feedback:", error);
@@ -65,6 +78,22 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (alreadySubmitted) {
+    return (
+      <div className="py-10 text-center">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
+          <Check className="size-5" />
+        </div>
+
+        <h2 className="mt-4 text-xl font-semibold">Thanks for your feedback</h2>
+
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+          You&apos;ve already shared feedback with {business.name} recently.
+        </p>
+      </div>
+    );
   }
 
   if (submitted) {

@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 
 import { useBusiness } from "@/components/business/business-provider";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ import {
   computeMetrics,
   computeRatingDistribution,
 } from "@/lib/feedback-metrics";
+import { generateReportPdf } from "@/lib/report-pdf";
 
 type ReportMonth = {
   year: number;
@@ -32,6 +33,7 @@ export default function ReportsPage() {
   const months = useMemo(() => getCompletedMonths(12), []);
 
   const [selectedMonth, setSelectedMonth] = useState<ReportMonth>(months[0]);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const currentFeedback = useMemo(
     () => filterByMonth(feedback, selectedMonth),
@@ -60,6 +62,22 @@ export default function ReportsPage() {
     [currentFeedback],
   );
 
+  async function handleDownloadPdf() {
+    setIsGeneratingPdf(true);
+    try {
+      await generateReportPdf({
+        businessName: business?.name ?? "",
+        selectedMonth,
+        metrics,
+        previousMetrics,
+        distribution,
+        feedback: currentFeedback,
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-2 text-sm text-muted-foreground">Loading report...</div>
@@ -80,6 +98,8 @@ export default function ReportsPage() {
         selectedMonth={selectedMonth}
         months={months}
         onChange={setSelectedMonth}
+        onDownloadPdf={handleDownloadPdf}
+        isGeneratingPdf={isGeneratingPdf}
       />
 
       <div className="p-2">
@@ -187,10 +207,14 @@ function ReportHeader({
   selectedMonth,
   months,
   onChange,
+  onDownloadPdf,
+  isGeneratingPdf,
 }: {
   selectedMonth: ReportMonth;
   months: ReportMonth[];
   onChange: (month: ReportMonth) => void;
+  onDownloadPdf: () => void;
+  isGeneratingPdf: boolean;
 }) {
   return (
     <div className="flex items-start justify-between gap-4">
@@ -202,31 +226,42 @@ function ReportHeader({
         </p>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className={cn(
-            buttonVariants({
-              variant: "outline",
-              size: "sm",
-            }),
-            "shrink-0",
-          )}
+      <div className="flex shrink-0 items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onDownloadPdf}
+          disabled={isGeneratingPdf}
         >
-          {formatMonth(selectedMonth)}
-          <ChevronDown className="size-3.5 opacity-60" />
-        </DropdownMenuTrigger>
+          <Download className="size-3.5 opacity-60" />
+          {isGeneratingPdf ? "Generating..." : "Download PDF"}
+        </Button>
 
-        <DropdownMenuContent align="end">
-          {months.map((month) => (
-            <DropdownMenuItem
-              key={`${month.year}-${month.month}`}
-              onClick={() => onChange(month)}
-            >
-              {formatMonth(month)}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={cn(
+              buttonVariants({
+                variant: "outline",
+                size: "sm",
+              }),
+            )}
+          >
+            {formatMonth(selectedMonth)}
+            <ChevronDown className="size-3.5 opacity-60" />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end">
+            {months.map((month) => (
+              <DropdownMenuItem
+                key={`${month.year}-${month.month}`}
+                onClick={() => onChange(month)}
+              >
+                {formatMonth(month)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }

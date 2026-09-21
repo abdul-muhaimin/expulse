@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { CustomerFeedbackForm } from "@/components/feedback/customer-feedback-form";
@@ -16,9 +16,9 @@ type Business = {
 export default function PublicFeedbackPage({
   params,
 }: {
-  params: Promise<{ businessId: string }>;
+  params: { businessId: string };
 }) {
-  const { businessId } = use(params);
+  const businessId = params.businessId;
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,8 +48,23 @@ export default function PublicFeedbackPage({
           category: data.category,
           location: data.location,
         });
-      } catch (error) {
-        console.error("Failed to load business:", error);
+      } catch (error: unknown) {
+        // Public visitors should not see the difference between a missing,
+        // inaccessible, or inactive business. Firestore can return
+        // `permission-denied` for documents that don't exist or are blocked
+        // by security rules; treat that as "not available" and avoid noisy
+        // console errors in development.
+        let code: string | undefined;
+
+        if (typeof error === "object" && error !== null && "code" in error) {
+          const maybeCode = (error as { code?: unknown }).code;
+          if (typeof maybeCode === "string") code = maybeCode;
+        }
+
+        if (code && code !== "permission-denied" && code !== "not-found") {
+          console.error("Failed to load business:", error);
+        }
+
         setNotAvailable(true);
       } finally {
         setLoading(false);
