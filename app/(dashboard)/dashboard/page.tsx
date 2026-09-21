@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { OverviewHeader } from "@/components/dashboard/overview/overview-header";
 import { PulseSummary } from "@/components/dashboard/overview/pulse-summary";
 import { ExperienceTrend } from "@/components/dashboard/overview/experience-trend";
@@ -11,9 +13,16 @@ import {
   computeMonthlyTrend,
   computeRatingDistribution,
   computeTrendIndicator,
+  filterByRollingPeriod,
+  ROLLING_PERIODS,
+  type RollingPeriod,
 } from "@/lib/feedback-metrics";
 
 export default function DashboardPage() {
+  const [selectedPeriod, setSelectedPeriod] = useState<RollingPeriod>(
+    ROLLING_PERIODS[0],
+  );
+
   const { feedback, loading, error } = useBusinessFeedback();
 
   if (loading) {
@@ -32,14 +41,22 @@ export default function DashboardPage() {
     );
   }
 
-  const metrics = computeMetrics(feedback);
+  // Trend uses the full dataset so historical context is preserved.
   const trend = computeMonthlyTrend(feedback);
   const trendIndicator = computeTrendIndicator(trend);
-  const ratingDist = computeRatingDistribution(feedback);
+
+  // All other metrics are scoped to the selected rolling window.
+  const periodFeedback = filterByRollingPeriod(feedback, selectedPeriod);
+  const metrics = computeMetrics(periodFeedback);
+  const ratingDist = computeRatingDistribution(periodFeedback);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4 p-4 md:space-y-6 md:p-6">
-      <OverviewHeader />
+      <OverviewHeader
+        periods={ROLLING_PERIODS}
+        selectedPeriod={selectedPeriod}
+        onPeriodChange={setSelectedPeriod}
+      />
 
       <PulseSummary metrics={metrics} />
 
@@ -54,7 +71,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <RecentFeedback feedback={feedback.slice(0, 10)} />
+      <RecentFeedback feedback={periodFeedback.slice(0, 10)} />
     </div>
   );
 }

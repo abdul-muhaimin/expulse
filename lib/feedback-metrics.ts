@@ -1,5 +1,26 @@
 import type { FeedbackDoc } from "@/lib/feedback";
 
+// Represents a rolling time window selectable in the dashboard.
+export type RollingPeriod = {
+  days: number;  // window length, e.g. 30
+  label: string; // display label, e.g. "Last 30 days"
+};
+
+export const ROLLING_PERIODS: RollingPeriod[] = [
+  { days: 30, label: "Last 30 days" },
+  { days: 90, label: "Last 90 days" },
+  { days: 180, label: "Last 180 days" },
+];
+
+// Filters feedback to entries created within the rolling window ending now.
+export function filterByRollingPeriod(
+  feedback: FeedbackDoc[],
+  period: RollingPeriod,
+): FeedbackDoc[] {
+  const cutoff = Date.now() - period.days * 24 * 60 * 60 * 1000;
+  return feedback.filter((f) => f.createdAt.toDate().getTime() >= cutoff);
+}
+
 export type PulseMetrics = {
   totalResponses: number;
   avgRating: number;   // rounded to 1 decimal place

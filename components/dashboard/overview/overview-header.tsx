@@ -8,32 +8,48 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { RollingPeriod } from "@/lib/feedback-metrics";
 
-export function OverviewHeader() {
+type OverviewHeaderProps = {
+  periods: RollingPeriod[];
+  selectedPeriod: RollingPeriod;
+  onPeriodChange: (period: RollingPeriod) => void;
+};
+
+export function OverviewHeader({
+  periods,
+  selectedPeriod,
+  onPeriodChange,
+}: OverviewHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Here&#39;s how customers experienced your business this month.
+          Here&#39;s how customers experienced your business over the last{" "}
+          {selectedPeriod.days} days.
         </p>
       </div>
 
-      {/* Period selector — DropdownMenu reuses existing component, no new dep needed */}
       <DropdownMenu>
         <DropdownMenuTrigger
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
-            "mt-0.5 shrink-0"
+            "mt-0.5 shrink-0",
           )}
         >
-          September
+          {selectedPeriod.label}
           <ChevronDown className="size-3.5 opacity-60" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>July</DropdownMenuItem>
-          <DropdownMenuItem>August</DropdownMenuItem>
-          <DropdownMenuItem>September</DropdownMenuItem>
+          {periods.map((period) => (
+            <DropdownMenuItem
+              key={period.days}
+              onClick={() => onPeriodChange(period)}
+            >
+              {period.label}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
