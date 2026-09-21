@@ -138,7 +138,14 @@ export default function PublicFeedbackPage({
         <CustomerFeedbackForm business={business} lang={lang} />
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          {t.poweredBy}
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+          >
+            {t.poweredBy}
+          </a>
         </p>
       </div>
     </main>
