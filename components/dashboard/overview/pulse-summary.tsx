@@ -1,4 +1,4 @@
-import { Star, ThumbsUp, TrendingUp, Users } from "lucide-react";
+import { Star, ThumbsUp, Users } from "lucide-react";
 
 import {
   Card,
@@ -6,85 +6,78 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { mockPulse } from "@/lib/mock-data";
+import type { PulseMetrics } from "@/lib/feedback-metrics";
 
 type Metric = {
   label: string;
   value: string;
   suffix?: string;
-  change: string;
+  sublabel: string;
   icon: typeof Star;
-  positive: boolean;
 };
 
-const metrics: Metric[] = [
-  {
-    label: "Experience",
-    value: mockPulse.experience.value.toString(),
-    suffix: `/ ${mockPulse.experience.max}`,
-    change: `+${mockPulse.experience.change}% from last month`,
-    icon: Star,
-    positive: true,
-  },
-  {
-    label: "Recommend",
-    value: `${mockPulse.recommend.value}%`,
-    change: `+${mockPulse.recommend.change}% from last month`,
-    icon: ThumbsUp,
-    positive: true,
-  },
-  {
-    label: "NPS",
-    value: `+${mockPulse.nps.value}`,
-    change: `+${mockPulse.nps.change} from last month`,
-    icon: TrendingUp,
-    positive: true,
-  },
-  {
-    label: "Responses",
-    value: mockPulse.responses.value.toString(),
-    change: "this month",
-    icon: Users,
-    positive: false,
-  },
-];
+function buildMetrics(metrics: PulseMetrics): Metric[] {
+  const hasData = metrics.totalResponses > 0;
 
-export function PulseSummary() {
+  return [
+    {
+      label: "Experience",
+      value: hasData ? metrics.avgRating.toFixed(1) : "—",
+      suffix: "/ 5",
+      sublabel: "Average rating",
+      icon: Star,
+    },
+    {
+      label: "Recommend",
+      value: hasData ? `${metrics.recommendPct}%` : "—",
+      sublabel: "Would recommend",
+      icon: ThumbsUp,
+    },
+    {
+      label: "Responses",
+      value: metrics.totalResponses.toString(),
+      sublabel: "Total responses",
+      icon: Users,
+    },
+  ];
+}
+
+type PulseSummaryProps = {
+  metrics: PulseMetrics;
+};
+
+export function PulseSummary({ metrics }: PulseSummaryProps) {
+  const items = buildMetrics(metrics);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Customer pulse</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
-          {metrics.map((metric) => {
-            const Icon = metric.icon;
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
+          {items.map((item) => {
+            const Icon = item.icon;
             return (
-              <div key={metric.label}>
+              <div key={item.label}>
                 <div className="mb-1 flex items-center gap-1.5 text-muted-foreground">
                   <Icon className="size-3.5 shrink-0" />
-                  <span className="text-xs font-medium">{metric.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </div>
 
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-semibold tabular-nums tracking-tight">
-                    {metric.value}
+                    {item.value}
                   </span>
-                  {metric.suffix && (
+                  {item.suffix && (
                     <span className="text-sm text-muted-foreground">
-                      {metric.suffix}
+                      {item.suffix}
                     </span>
                   )}
                 </div>
 
-                <p
-                  className={`mt-0.5 text-xs ${
-                    metric.positive
-                      ? "text-green-600 dark:text-green-500"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  {metric.change}
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {item.sublabel}
                 </p>
               </div>
             );
