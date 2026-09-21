@@ -72,17 +72,102 @@ export function BusinessQrCard({
     }
   }
 
-  function handleDownload() {
+  function handleDownloadQr() {
     if (!qrDataUrl) return;
 
-    const link = document.createElement("a");
+    downloadDataUrl(
+      qrDataUrl,
+      `${toFileName(businessName)}-feedback-qr.png`,
+    );
+  }
 
-    link.href = qrDataUrl;
-    link.download = `${toFileName(businessName)}-feedback-qr.png`;
+  async function handleDownloadCard() {
+    if (!qrDataUrl) return;
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const canvas = document.createElement("canvas");
+
+    // High-resolution portrait card.
+    // Roughly A5 proportions and suitable for printing.
+    canvas.width = 1748;
+    canvas.height = 2480;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    // Background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Outer border
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 4;
+    roundedRect(ctx, 80, 80, canvas.width - 160, canvas.height - 160, 40);
+    ctx.stroke();
+
+    // Business name
+    ctx.fillStyle = "#52525b";
+    ctx.font = "500 44px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(businessName, canvas.width / 2, 300);
+
+    // Main heading
+    ctx.fillStyle = "#18181b";
+    ctx.font = "700 82px Arial, sans-serif";
+    ctx.fillText("How was your experience?", canvas.width / 2, 450);
+
+    // Supporting text
+    ctx.fillStyle = "#71717a";
+    ctx.font = "400 42px Arial, sans-serif";
+    ctx.fillText("Scan to share your feedback", canvas.width / 2, 540);
+
+    // Load QR into an image
+    const qrImage = new Image();
+
+    await new Promise<void>((resolve, reject) => {
+      qrImage.onload = () => resolve();
+      qrImage.onerror = () => reject();
+      qrImage.src = qrDataUrl;
+    });
+
+    // QR
+    const qrSize = 1050;
+    const qrX = (canvas.width - qrSize) / 2;
+    const qrY = 700;
+
+    ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+    // CTA under QR
+    ctx.fillStyle = "#18181b";
+    ctx.font = "600 48px Arial, sans-serif";
+    ctx.fillText("Tell us how we did", canvas.width / 2, 1900);
+
+    ctx.fillStyle = "#71717a";
+    ctx.font = "400 36px Arial, sans-serif";
+    ctx.fillText("It only takes a moment.", canvas.width / 2, 1960);
+
+    // Expulse divider
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.moveTo(500, 2130);
+    ctx.lineTo(canvas.width - 500, 2130);
+    ctx.stroke();
+
+    // Branding
+    ctx.fillStyle = "#71717a";
+    ctx.font = "400 30px Arial, sans-serif";
+    ctx.fillText("Powered by", canvas.width / 2, 2220);
+
+    ctx.fillStyle = "#18181b";
+    ctx.font = "700 52px Georgia, serif";
+    ctx.fillText("expulse", canvas.width / 2, 2290);
+
+    downloadDataUrl(
+      canvas.toDataURL("image/png"),
+      `${toFileName(businessName)}-feedback-card.png`,
+    );
   }
 
   function handleOpenFeedbackPage() {
@@ -137,14 +222,24 @@ export function BusinessQrCard({
             </p>
           </div>
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <Button
               type="button"
-              onClick={handleDownload}
+              onClick={handleDownloadCard}
               disabled={!qrDataUrl}
             >
               <Download className="size-4" />
-              Download QR
+              Download print card
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDownloadQr}
+              disabled={!qrDataUrl}
+            >
+              <Download className="size-4" />
+              QR only
             </Button>
           </div>
         </CardContent>
@@ -213,4 +308,27 @@ function toFileName(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function downloadDataUrl(dataUrl: string, fileName: string) {
+  const link = document.createElement("a");
+
+  link.href = dataUrl;
+  link.download = fileName;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
 }
