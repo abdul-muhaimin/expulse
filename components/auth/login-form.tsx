@@ -27,10 +27,19 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password,
+      );
 
-      // Login successful.
-      router.push("/dashboard");
+      const tokenResult = await credential.user.getIdTokenResult();
+
+      if (tokenResult.claims.admin === true) {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
     } catch (error) {
       console.error("Login failed:", error);
 

@@ -18,6 +18,7 @@ import { auth } from "@/lib/firebase/client";
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
 };
 
@@ -26,11 +27,26 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Firebase checks whether a saved login session exists.
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+
+      if (currentUser) {
+        try {
+          const tokenResult = await currentUser.getIdTokenResult();
+
+          setIsAdmin(tokenResult.claims.admin === true);
+        } catch (error) {
+          console.error("Failed to read auth claims:", error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+
       setLoading(false);
     });
 
@@ -46,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
+        isAdmin,
         signOut,
       }}
     >

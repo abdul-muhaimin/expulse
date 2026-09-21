@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 
-import { RequireAuth } from "@/components/auth/require-auth";
+import { RequireActiveBusiness } from "@/components/auth/require-active-business";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <RequireAuth>
+    <RequireActiveBusiness>
       <DashboardShell>{children}</DashboardShell>
-    </RequireAuth>
+    </RequireActiveBusiness>
   );
 }

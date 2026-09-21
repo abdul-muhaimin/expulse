@@ -3,8 +3,13 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  doc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 
-import { auth } from "@/lib/firebase/client";
+import { auth, db } from "@/lib/firebase/client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,16 +41,24 @@ export function SignupForm() {
         password,
       );
 
-      // Store the owner's name in the Firebase Auth profile.
-      // Business data will be stored in Firestore in the next step.
+      // Store the display name in Firebase Auth.
       await updateProfile(credential.user, {
         displayName: name.trim(),
       });
 
-      // Temporary:
-      // once Firestore onboarding is connected, this will move
-      // into the proper post-signup flow.
-      router.push("/dashboard");
+      // Create the Expulse user profile.
+      //
+      // The document ID is the same as the Firebase Auth UID.
+      // This makes ownership checks simple and secure.
+      await setDoc(doc(db, "users", credential.user.uid), {
+        name: name.trim(),
+        email: credential.user.email,
+        createdAt: serverTimestamp(),
+      });
+
+      // The user doesn't have a business yet.
+      // Business onboarding is the next step.
+      router.push("/onboarding");
     } catch (error) {
       console.error("Signup failed:", error);
 
