@@ -11,6 +11,11 @@ import {
   hasRecentFeedback,
   markFeedbackSubmitted,
 } from "@/lib/feedback-cooldown";
+import {
+  type SupportedLang,
+  getTranslations,
+  interpolate,
+} from "@/lib/i18n/customer-feedback";
 
 type Business = {
   id: string;
@@ -19,15 +24,17 @@ type Business = {
   location: string;
 };
 
-const ratings = [
-  { value: 1, emoji: "😞", label: "Very bad" },
-  { value: 2, emoji: "😕", label: "Bad" },
-  { value: 3, emoji: "😐", label: "Okay" },
-  { value: 4, emoji: "🙂", label: "Good" },
-  { value: 5, emoji: "😍", label: "Excellent" },
-];
+const RATING_EMOJIS = ["😞", "😕", "😐", "🙂", "😍"] as const;
 
-export function CustomerFeedbackForm({ business }: { business: Business }) {
+export function CustomerFeedbackForm({
+  business,
+  lang,
+}: {
+  business: Business;
+  lang: SupportedLang;
+}) {
+  const t = getTranslations(lang);
+
   const [rating, setRating] = useState<number | null>(null);
   const [recommend, setRecommend] = useState<boolean | null>(null);
   const [comment, setComment] = useState("");
@@ -48,12 +55,12 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
     event.preventDefault();
 
     if (rating === null) {
-      setError("Please rate your experience.");
+      setError(t.errorRating);
       return;
     }
 
     if (recommend === null) {
-      setError("Please tell us if you would recommend this business.");
+      setError(t.errorRecommend);
       return;
     }
 
@@ -71,10 +78,10 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
 
       markFeedbackSubmitted(business.id);
       setSubmitted(true);
-    } catch (error) {
-      console.error("Failed to submit feedback:", error);
+    } catch (err) {
+      console.error("Failed to submit feedback:", err);
 
-      setError("We couldn't submit your feedback. Please try again.");
+      setError(t.errorSubmit);
     } finally {
       setSubmitting(false);
     }
@@ -87,10 +94,10 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
           <Check className="size-5" />
         </div>
 
-        <h2 className="mt-4 text-xl font-semibold">Thanks for your feedback</h2>
+        <h2 className="mt-4 text-xl font-semibold">{t.alreadyTitle}</h2>
 
         <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-          You&apos;ve already shared feedback with {business.name} recently.
+          {interpolate(t.alreadyMessage, { name: business.name })}
         </p>
       </div>
     );
@@ -104,10 +111,10 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
             <CheckCircle2 className="size-7" />
           </div>
 
-          <h2 className="mt-5 text-xl font-semibold">Thank you!</h2>
+          <h2 className="mt-5 text-xl font-semibold">{t.successTitle}</h2>
 
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Your feedback has been shared with {business.name}.
+            {interpolate(t.successMessage, { name: business.name })}
           </p>
         </CardContent>
       </Card>
@@ -119,23 +126,25 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit}>
           <fieldset>
-            <legend className="text-center text-lg font-semibold">
-              How was your experience today?
+            <legend className="w-full text-center text-lg font-semibold">
+              {t.experienceQuestion}
             </legend>
 
             <div className="mt-5 grid grid-cols-5 gap-2">
-              {ratings.map((item) => {
-                const selected = rating === item.value;
+              {RATING_EMOJIS.map((emoji, index) => {
+                const value = index + 1;
+                const label = t.ratingLabels[index];
+                const selected = rating === value;
 
                 return (
                   <button
-                    key={item.value}
+                    key={value}
                     type="button"
                     onClick={() => {
-                      setRating(item.value);
+                      setRating(value);
                       setError("");
                     }}
-                    aria-label={item.label}
+                    aria-label={label}
                     aria-pressed={selected}
                     className={`rounded-xl border px-1 py-3 text-center transition ${
                       selected
@@ -143,10 +152,10 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
                         : "hover:bg-muted"
                     }`}
                   >
-                    <span className="block text-2xl">{item.emoji}</span>
+                    <span className="block text-2xl">{emoji}</span>
 
                     <span className="mt-1 block text-xs text-muted-foreground">
-                      {item.value}
+                      {value}
                     </span>
                   </button>
                 );
@@ -158,7 +167,7 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
 
           <fieldset>
             <legend className="text-sm font-medium">
-              Would you recommend {business.name}?
+              {interpolate(t.recommendQuestion, { name: business.name })}
             </legend>
 
             <div className="mt-3 grid grid-cols-2 gap-3">
@@ -170,7 +179,7 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
                   setError("");
                 }}
               >
-                Yes
+                {t.yes}
               </Button>
 
               <Button
@@ -181,7 +190,7 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
                   setError("");
                 }}
               >
-                No
+                {t.no}
               </Button>
             </div>
           </fieldset>
@@ -190,10 +199,12 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
 
           <div>
             <label htmlFor="comment" className="text-sm font-medium">
-              Anything you&apos;d like us to know?
+              {t.commentLabel}
             </label>
 
-            <p className="mt-1 text-xs text-muted-foreground">Optional</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t.commentOptional}
+            </p>
 
             <textarea
               id="comment"
@@ -201,7 +212,7 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
               onChange={(event) => setComment(event.target.value)}
               maxLength={1000}
               rows={4}
-              placeholder="Tell us about your experience..."
+              placeholder={t.commentPlaceholder}
               className="mt-3 flex w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             />
 
@@ -225,7 +236,7 @@ export function CustomerFeedbackForm({ business }: { business: Business }) {
             size="lg"
             disabled={submitting}
           >
-            {submitting ? "Submitting..." : "Submit feedback"}
+            {submitting ? t.submittingButton : t.submitButton}
           </Button>
         </form>
       </CardContent>

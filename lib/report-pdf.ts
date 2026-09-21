@@ -223,7 +223,6 @@ export async function generateReportPdf(options: ReportPdfOptions): Promise<void
   const BAR_H = 3;
   const BAR_MAX_W = CONTENT_W - 28;
   const LABEL_W = 16;
-  const COUNT_W = 10;
 
   for (const item of distribution) {
     const pct =
