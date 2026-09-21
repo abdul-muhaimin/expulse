@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { CustomerFeedbackForm } from "@/components/feedback/customer-feedback-form";
@@ -16,9 +16,9 @@ type Business = {
 export default function PublicFeedbackPage({
   params,
 }: {
-  params: { businessId: string };
+  params: Promise<{ businessId: string }>;
 }) {
-  const businessId = params.businessId;
+  const { businessId } = use(params);
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);

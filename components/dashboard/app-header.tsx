@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Bell, LogOut, Moon, Settings, Sun, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -45,7 +46,8 @@ export function AppHeader() {
       <div className="flex h-full items-center justify-between px-4 md:px-6">
         {/* Product branding */}
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold tracking-tight">ExPulse</span>
+          <Image src="/icon.png" alt="Expulse" width={28} height={28} />
+          <h1 className="text-lg font-semibold tracking-tight">Expulse</h1>
         </div>
 
         {/* User actions */}
