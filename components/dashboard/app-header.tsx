@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bell, LogOut, Settings, UserRound } from "lucide-react";
+import { Bell, LogOut, Moon, Settings, Sun, UserRound } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { useAuth } from "@/components/auth/auth-provider";
 
@@ -20,6 +21,13 @@ import {
 export function AppHeader() {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
+
+  function toggleTheme() {
+    setTheme(isDark ? "light" : "dark");
+  }
 
   async function handleSignOut() {
     await signOut();
@@ -57,7 +65,6 @@ export function AppHeader() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-56">
-              {/* Account information belongs inside a Base UI menu group */}
               <DropdownMenuGroup>
                 <DropdownMenuLabel>
                   <div className="flex flex-col gap-1">
@@ -72,6 +79,19 @@ export function AppHeader() {
                     </span>
                   </div>
                 </DropdownMenuLabel>
+              </DropdownMenuGroup>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {isDark ? (
+                    <Sun className="size-4" />
+                  ) : (
+                    <Moon className="size-4" />
+                  )}
+                  {isDark ? "Light mode" : "Dark mode"}
+                </DropdownMenuItem>
 
                 <DropdownMenuItem onClick={() => router.push("/settings")}>
                   <Settings className="size-4" />
