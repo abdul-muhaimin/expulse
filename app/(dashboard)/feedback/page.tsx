@@ -31,9 +31,9 @@ export default function FeedbackPage() {
   }, [feedback, filter]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-2">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Feedback</h1>
+        <h1 className="text-2xl font-semibold tracking-tight p-2">Feedback</h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
           See what your customers are saying about their experiences.

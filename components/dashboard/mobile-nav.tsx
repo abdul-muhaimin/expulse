@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { navigationItems } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -12,24 +14,28 @@ export function MobileNav() {
       <div className="grid h-16 grid-cols-4">
         {navigationItems.map((item) => {
           const Icon = item.icon;
+
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
-            <button
+            <Link
               key={item.label}
-              type="button"
-              className={
+              href={item.href}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 transition-colors",
                 isActive
-                  ? "flex flex-col items-center justify-center gap-1 text-primary"
-                  : "flex flex-col items-center justify-center gap-1 text-muted-foreground"
-              }
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
             >
               <Icon className="size-5" />
+
               <span className="text-[11px] font-medium">
                 {item.shortLabel ?? item.label}
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>
